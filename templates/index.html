@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cotizador de Seguro Médico</title>
+    <style>
+      /* Design tokens */
+      :root {
+        --bg: #0f0f11;
+        --surface: #16181c;
+        --surface-2: #1d2026;
+        --text: #e7e9ee;
+        --muted: #a2a9b6;
+        --primary: #16a34a; /* verde */
+        --primary-contrast: #0b3b1f;
+        --border: #2a2f37;
+        --focus: #22c55e;
+        --radius: 12px;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f7f7f9;
+          --surface: #ffffff;
+          --surface-2: #ffffff;
+          --text: #101318;
+          --muted: #5b6472;
+          --primary: #16a34a;
+          --primary-contrast: #e7f7ec;
+          --border: #e6e8ee;
+          --focus: #16a34a;
+        }
+      }
+
+      /* Reset + base */
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        background: radial-gradient(1200px 600px at 80% -10%, rgba(34,197,94,0.08), transparent 60%),
+                    radial-gradient(1000px 500px at -10% 120%, rgba(22,163,74,0.10), transparent 60%),
+                    var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .sr-only {
+        position: absolute !important;
+        height: 1px; width: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+        white-space: nowrap;
+      }
+
+      a { color: inherit; }
+
+      /* Layout */
+      .wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      header.header {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 24px 0 16px;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .eyebrow::before {
+        content: "";
+        height: 1px; width: 32px;
+        background: var(--border);
+        border-radius: 999px;
+      }
+      h1.title {
+        font-size: clamp(24px, 3vw, 36px);
+        line-height: 1.1;
+        margin: 0;
+      }
+      p.subtitle {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60ch;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      @media (min-width: 900px) {
+        .grid {
+          grid-template-columns: 1.4fr 1fr;
+          gap: 24px;
+        }
+      }
+
+      .card {
+        background: linear-gradient(180deg, var(--surface), var(--surface-2));
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      /* Form */
+      form.cotizador {
+        padding: 20px;
+      }
+      @media (min-width: 520px) {
+        form.cotizador { padding: 24px; }
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      @media (min-width: 700px) {
+        .form-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+      .field.full { grid-column: 1 / -1; }
+
+      label {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      input[type="number"],
+      select,
+      input[type="text"],
+      input[type="email"] {
+        width: 100%;
+        appearance: none;
+        background: color-mix(in oklab, var(--surface) 94%, var(--bg));
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 12px 14px;
+        border-radius: 10px;
+        outline: none;
+        transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+      input::placeholder { color: color-mix(in oklab, var(--muted) 70%, var(--text)); }
+
+      input:focus,
+      select:focus {
+        border-color: color-mix(in oklab, var(--focus) 65%, var(--border));
+        box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 15%, transparent);
+      }
+
+      .helper {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* Radio + checkbox groups */
+      fieldset {
+        margin: 0;
+        padding: 0;
+        border: none;
+      }
+      .options {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .chip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--surface) 92%, var(--bg));
+        color: var(--text);
+        cursor: pointer;
+        user-select: none;
+        transition: border-color 160ms ease, background 160ms ease;
+      }
+      .chip input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+      .chip:has(input:focus-visible) {
+        outline: 3px solid color-mix(in oklab, var(--focus) 35%, transparent);
+        outline-offset: 2px;
+      }
+      .chip:has(input:checked) {
+        border-color: color-mix(in oklab, var(--primary) 60%, var(--border));
+        background: color-mix(in oklab, var(--primary) 10%, var(--surface));
+      }
+
+      /* Actions */
+      .actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 8px;
+        grid-column: 1 / -1;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 80ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
+      }
+      .btn-primary {
+        background: linear-gradient(180deg, color-mix(in oklab, var(--primary) 90%, #fff) 0%, var(--primary) 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 16px rgba(22,163,74,0.25);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(22,163,74,0.32);
+      }
+      .btn-primary:active { transform: translateY(0); }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--muted);
+        border-color: var(--border);
+      }
+      .btn-ghost:hover {
+        background: color-mix(in oklab, var(--surface) 90%, var(--bg));
+        color: var(--text);
+      }
+
+      /* Summary */
+      .summary {
+        padding: 20px;
+      }
+      @media (min-width: 520px) {
+        .summary { padding: 24px; }
+      }
+      .summary-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .summary-title {
+        font-size: 18px;
+        margin: 0;
+      }
+      .badge {
+        font-size: 12px;
+        color: var(--muted);
+        padding: 4px 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--surface) 92%, var(--bg));
+      }
+      .price {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 18px;
+        border-radius: 12px;
+        background: linear-gradient(180deg, var(--primary-contrast), transparent 85%);
+        border: 1px dashed color-mix(in oklab, var(--primary) 45%, var(--border));
+      }
+      .price-amount {
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+      .price-note {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .breakdown {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--border);
+        display: grid;
+        gap: 8px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 14px;
+      }
+      .row .k { color: var(--muted); }
+      .row .v { color: var(--text); font-weight: 600; }
+
+      footer.footer {
+        margin: 28px 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrapper" role="main">
+      <header class="header">
+        <span class="eyebrow">Cotizador</span>
+        <h1 class="title">Calcula el costo estimado de tu seguro médico</h1>
+        <p class="subtitle">Ingresa tus datos para obtener una estimación inicial. Podrás ajustar el plan y los beneficiarios más adelante.</p>
+      </header>
+
+      <section class="grid" aria-label="Cotizador de seguro médico">
+         Formulario 
+        <div class="card">
+          <form class="cotizador" action="#" method="post" novalidate aria-describedby="nota-validacion">
+            <div class="form-grid">
+               Edad 
+              <div class="field">
+                <label for="edad">Edad</label>
+                <input
+                  id="edad"
+                  name="rooms"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  max="120"
+                  step="1"
+                  placeholder="Ej: 34"
+                  required
+                  aria-describedby="ayuda-edad"
+                />
+                <div id="ayuda-edad" class="helper">La edad influye en el costo del plan.</div>
+              </div>
+
+               Acciones 
+              <div class="actions">
+                <button class="btn btn-primary" type="submit">Calcular costo estimado</button>
+                <button class="btn btn-ghost" type="reset">Limpiar</button>
+              </div>
+            </div>
+
+            <p id="nota-validacion" class="helper" style="margin-top: 8px;">
+              Este es un formulario de muestra sin lógica de cálculo. Integra tu backend o script para obtener el resultado.
+            </p>
+          </form>
+        </div>
+
+         Resumen / Resultado 
+        <aside class="card summary" aria-labelledby="resumen-title">
+          <div class="summary-header">
+            <h2 id="resumen-title" class="summary-title">Estimación</h2>
+            <span class="badge">Muestra</span>
+          </div>
+          {% if result > 0 %}
+          <div class="price" role="status" aria-live="polite">
+            <div class="price-amount" id="precio" aria-label="Precio estimado">${{result}}</div>
+            <div class="price-note">/ mes</div>
+          </div>
+          {% endif %}
+
+          <p class="helper" style="margin-top: 12px;">
+            Los valores son referenciales y pueden variar según evaluación y condiciones de la póliza.
+          </p>
+        </aside>
+      </section>
+      
+    </main>
+  </body>
+</html>
