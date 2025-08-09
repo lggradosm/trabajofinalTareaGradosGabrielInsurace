@@ -35,3 +35,7 @@ El modelo fue entrenado usando regresión lineal simple con la variable `age` pa
 ## Licencia
 
 Este proyecto es solo para fines educativos.
+
+## Autor
+
+Gabriel Grados Machado.
